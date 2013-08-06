@@ -130,7 +130,7 @@ def add_generic_options(parser, fns):
         func(parser)
 
 def add_commands(parser, commands):
-    subparsers = parser.add_subparsers()
+    subparsers = parser.add_subparsers(title='commands', metavar='<command>')
     for func, args, kwargs in commands:
         if len(args) > 1:
             name = args[1]

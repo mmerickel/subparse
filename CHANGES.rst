@@ -1,3 +1,18 @@
+0.3.2 (2013-08-06)
+==================
+
+- Add `CLI.run` API for simply executing the command line.
+
+0.3.1 (2013-08-06)
+==================
+
+- Improve the help output.
+
+0.3 (2013-08-06)
+================
+
+- Rename subcommands to commands in the API.
+
 0.2 (2013-08-06)
 ================
 

@@ -101,7 +101,6 @@ class CLI(object):
             if ':' in mod:
                 mod, func = mod.split(':')
             mod = __import__(mod, None, None, ['__doc__'])
-            print(mod)
             method = getattr(mod, func)
         else:
             method = args.mainloc

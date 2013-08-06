@@ -22,6 +22,7 @@ class CLI(object):
                  description=None,
                  version=None,
                  add_help_command=True,
+                 context_factory=None,
                  ):
         self.prog = prog
         self.usage = usage
@@ -30,6 +31,7 @@ class CLI(object):
         self.add_help_command = add_help_command
         self.generic_options = []
         self.commands = []
+        self.context_factory = context_factory
 
         if version is not None:
             self.add_generic_option(
@@ -105,6 +107,14 @@ class CLI(object):
         else:
             method = args.mainloc
         return method(context, args) or 0
+
+    def run(self, argv=None):
+        args = self.parse(argv)
+        context = None
+        if self.context_factory:
+            context = self.context_factory(self, args)
+        return self.dispatch(args, context=context)
+
 
 def parse_docstring(txt):
     description = txt

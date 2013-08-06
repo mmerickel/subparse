@@ -51,6 +51,57 @@ def test_load_module():
     assert app['bar'] is False
     assert result == 0
 
+def test_load_module_dotted():
+    from subparse import CLI
+
+    cli = CLI()
+    cli.load_commands('subparse.tests.fixtures.foo')
+    assert len(cli.subcommands) > 0
+
+def test_load_module_dotted_relative():
+    from subparse import CLI
+
+    cli = CLI()
+    cli.load_commands('.fixtures.foo')
+    assert len(cli.subcommands) > 0
+
+def test_main_callable():
+    from subparse import CLI
+    from subparse.tests.fixtures.foo import main
+
+    cli = CLI()
+
+    @cli.subcommand(main)
+    def foo(parser):
+        parser.add_argument('--bar', action='store_true')
+
+    args = cli.parse(['foo', '--bar'])
+    assert args.bar is True
+
+    app = {}
+    result = cli.dispatch(args, context=app)
+    assert app['fn'] == 'main'
+    assert app['bar'] is True
+    assert result == 0
+
+def test_main_dotted_relative():
+    from subparse import CLI
+
+    cli = CLI()
+
+    @cli.subcommand('.fixtures.foo:foo_main')
+    def foo(parser):
+        parser.add_argument('--bar', action='store_true')
+
+    args = cli.parse(['foo', '--bar'])
+    assert args.bar is True
+
+    app = {}
+    result = cli.dispatch(args, context=app)
+    assert app['fn'] == 'foo_main'
+    assert app['bar'] is True
+    assert result == 0
+
 def test_underscore_command_name_converted_to_dash():
     from subparse import CLI
 

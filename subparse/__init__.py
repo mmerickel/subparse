@@ -4,8 +4,6 @@ import sys
 
 from .lazydecorator import lazydecorator
 
-__version__ = pkg_resources.get_distribution('subparse').version
-
 subcommand = lazydecorator()
 
 class MyArgumentParser(argparse.ArgumentParser):
@@ -52,6 +50,15 @@ class CLI(object):
         return wrapper
 
     def load_commands(self, obj):
+        if isinstance(obj, str):
+            if obj.startswith('.') or obj.startswith(':'):
+                package = caller_package()
+                if obj in ['.', ':']:
+                    obj = package.__name__
+                else:
+                    obj = package.__name__ + obj
+            obj = pkg_resources.EntryPoint.parse(
+                'x=%s' % obj).load(False)
         subcommand.discover_and_call(obj, self.subcommand)
 
     def load_commands_from_entry_point(self, specifier):
@@ -62,7 +69,7 @@ class CLI(object):
     def parse(self, argv=None):
         if argv is None:  # pragma: no cover
             argv = sys.argv[1:]
-        argv = list(map(str, argv))
+        argv = [str(v) for v in argv]
         parser = MyArgumentParser(
             prog=self.prog,
             usage=self.usage,
@@ -88,12 +95,16 @@ class CLI(object):
             parser.exit(2, '{0}: error: {1}\n'.format(parser.prog, e.args[0]))
 
     def dispatch(self, args, context=None):
-        mod = args.mainloc
-        func = 'main'
-        if ':' in mod:
-            mod, func = mod.split(':')
-        mod = __import__(mod, None, None, ['__doc__'])
-        method = getattr(mod, func)
+        if isinstance(args.mainloc, str):
+            mod = args.mainloc
+            func = 'main'
+            if ':' in mod:
+                mod, func = mod.split(':')
+            mod = __import__(mod, None, None, ['__doc__'])
+            print(mod)
+            method = getattr(mod, func)
+        else:
+            method = args.mainloc
         return method(context, args) or 0
 
 def parse_docstring(txt):
@@ -131,4 +142,35 @@ def add_subcommands(parser, subcommands):
             name, description=description, help=doc)
         func(subparser)
         mainloc = args[0]
+        if isinstance(mainloc, str):
+            if mainloc.startswith('.') or mainloc.startswith(':'):
+                module = __import__(func.__module__, None, None, ['__doc__'])
+                package = package_for_module(module)
+                if mainloc in ['.', ':']:
+                    mainloc = package.__name__
+                else:
+                    mainloc = package.__name__ + mainloc
         subparser.set_defaults(mainloc=mainloc)
+
+# stolen from pyramid.path
+def caller_module(level=2):
+    module_globals = sys._getframe(level).f_globals
+    module_name = module_globals.get('__name__') or '__main__'
+    module = sys.modules[module_name]
+    return module
+
+# stolen from pyramid.path
+def package_for_module(module):
+    f = getattr(module, '__file__', '')
+    if (('__init__.py' in f) or ('__init__$py' in f)):  # empty at >>>
+        # Module is a package
+        return module
+    # Go up one level to get package
+    package_name = module.__name__.rsplit('.', 1)[0]
+    return sys.modules[package_name]
+
+# stolen from pyramid.path
+def caller_package(level=2):
+    # caller_module in arglist for tests
+    module = caller_module(level + 1)
+    return package_for_module(module)

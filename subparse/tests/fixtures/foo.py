@@ -8,7 +8,7 @@ def foo(parser):
 def foo_bar(parser):
     parser.add_argument('--bar', action='store_true')
 
-@subcommand(__name__ + ':bar_main', 'bar')
+@subcommand('.foo:bar_main', 'bar')
 def bar_options(parser):
     parser.add_argument('--bar', action='store_true')
 

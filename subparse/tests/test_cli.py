@@ -121,3 +121,22 @@ def test_version_default(capsys):
     pytest.raises(SystemExit, cli.parse, ['--version'])
     out, err = capsys.readouterr()
     assert err == 'foo\n'
+
+def test_docstring(capsys):
+    from subparse import CLI
+
+    cli = CLI()
+
+    @cli.subcommand('subparse.tests.fixtures.foo')
+    def foo(parser):
+        """foo. bar"""
+
+    pytest.raises(SystemExit, cli.parse, ['--help'])
+    out, err = capsys.readouterr()
+    assert 'foo.' in out
+    assert 'bar' not in out
+
+    pytest.raises(SystemExit, cli.parse, ['foo', '--help'])
+    out, err = capsys.readouterr()
+    assert 'foo.' in out
+    assert 'bar' in out

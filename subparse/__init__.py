@@ -60,7 +60,7 @@ class CLI(object):
             subcommand.discover_and_call(module, self.subcommand)
 
     def parse(self, argv=None):
-        if argv is None:
+        if argv is None:  # pragma: no cover
             argv = sys.argv[1:]
         argv = list(map(str, argv))
         parser = MyArgumentParser(
@@ -107,7 +107,7 @@ def parse_docstring(txt):
         doc = txt[:i + 1]
     return doc, description
 
-def try_argcomplete(parser):
+def try_argcomplete(parser):  # pragma: no cover
     try:
         import argcomplete
     except ImportError:

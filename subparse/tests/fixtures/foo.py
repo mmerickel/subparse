@@ -1,14 +1,14 @@
-from subparse import subcommand
+from subparse import command
 
-@subcommand(__name__)
+@command(__name__)
 def foo(parser):
     parser.add_argument('--bar', action='store_true')
 
-@subcommand(__name__ + ':foo_main')
+@command(__name__ + ':foo_main')
 def foo_bar(parser):
     parser.add_argument('--bar', action='store_true')
 
-@subcommand('.foo:bar_main', 'bar')
+@command('.foo:bar_main', 'bar')
 def bar_options(parser):
     parser.add_argument('--bar', action='store_true')
 

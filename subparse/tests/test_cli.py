@@ -5,7 +5,7 @@ def test_basic():
 
     cli = CLI()
 
-    @cli.subcommand('subparse.tests.fixtures.foo')
+    @cli.command('subparse.tests.fixtures.foo')
     def foo(parser):
         parser.add_argument('--bar', action='store_true')
 
@@ -18,9 +18,9 @@ def test_basic():
     assert result == 0
 
 def test_basic_decorator_dict():
-    from subparse import CLI, subcommand
+    from subparse import CLI, command
 
-    @subcommand('subparse.tests.fixtures.foo')
+    @command('subparse.tests.fixtures.foo')
     def foo(parser):
         parser.add_argument('--bar', action='store_true')
 
@@ -56,14 +56,14 @@ def test_load_module_dotted():
 
     cli = CLI()
     cli.load_commands('subparse.tests.fixtures.foo')
-    assert len(cli.subcommands) > 0
+    assert len(cli.commands) > 0
 
 def test_load_module_dotted_relative():
     from subparse import CLI
 
     cli = CLI()
     cli.load_commands('.fixtures.foo')
-    assert len(cli.subcommands) > 0
+    assert len(cli.commands) > 0
 
 def test_main_callable():
     from subparse import CLI
@@ -71,7 +71,7 @@ def test_main_callable():
 
     cli = CLI()
 
-    @cli.subcommand(main)
+    @cli.command(main)
     def foo(parser):
         parser.add_argument('--bar', action='store_true')
 
@@ -89,7 +89,7 @@ def test_main_dotted_relative():
 
     cli = CLI()
 
-    @cli.subcommand('.fixtures.foo:foo_main')
+    @cli.command('.fixtures.foo:foo_main')
     def foo(parser):
         parser.add_argument('--bar', action='store_true')
 
@@ -107,7 +107,7 @@ def test_underscore_command_name_converted_to_dash():
 
     cli = CLI()
 
-    @cli.subcommand('subparse.tests.fixtures.foo')
+    @cli.command('subparse.tests.fixtures.foo')
     def foo_bar(parser):
         parser.add_argument('--bar', action='store_true')
 
@@ -124,7 +124,7 @@ def test_underscore_command_name_preserved():
 
     cli = CLI()
 
-    @cli.subcommand('subparse.tests.fixtures.foo', 'foo_bar')
+    @cli.command('subparse.tests.fixtures.foo', 'foo_bar')
     def foo_bar(parser):
         parser.add_argument('--bar', action='store_true')
 
@@ -141,7 +141,7 @@ def test_override_command_name():
 
     cli = CLI()
 
-    @cli.subcommand('subparse.tests.fixtures.foo', 'baz')
+    @cli.command('subparse.tests.fixtures.foo', 'baz')
     def foo_bar(parser):
         parser.add_argument('--bar', action='store_true')
 
@@ -158,7 +158,7 @@ def test_alternate_main():
 
     cli = CLI()
 
-    @cli.subcommand('subparse.tests.fixtures.foo:foo_main')
+    @cli.command('subparse.tests.fixtures.foo:foo_main')
     def foo(parser):
         parser.add_argument('--bar', action='store_true')
 
@@ -176,7 +176,7 @@ def test_help_command(capsys):
 
     cli = CLI()
 
-    @cli.subcommand('subparse.tests.fixtures.foo')
+    @cli.command('subparse.tests.fixtures.foo')
     def foo(parser):
         parser.add_argument('--bar', action='store_true')
 
@@ -189,7 +189,7 @@ def test_bad_options(capsys):
 
     cli = CLI()
 
-    @cli.subcommand('subparse.tests.fixtures.foo')
+    @cli.command('subparse.tests.fixtures.foo')
     def foo(parser):
         parser.add_argument('--bar', action='store_true')
 
@@ -211,7 +211,7 @@ def test_docstring(capsys):
 
     cli = CLI()
 
-    @cli.subcommand('subparse.tests.fixtures.foo')
+    @cli.command('subparse.tests.fixtures.foo')
     def foo(parser):
         """foo. bar"""
 

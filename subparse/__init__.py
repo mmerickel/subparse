@@ -4,7 +4,7 @@ import sys
 
 from .lazydecorator import lazydecorator
 
-subcommand = lazydecorator()
+command = lazydecorator()
 
 class MyArgumentParser(argparse.ArgumentParser):
     class ArgumentError(Exception):
@@ -29,7 +29,7 @@ class CLI(object):
         self.version = version
         self.add_help_command = add_help_command
         self.generic_options = []
-        self.subcommands = []
+        self.commands = []
 
         if version is not None:
             self.add_generic_option(
@@ -43,9 +43,9 @@ class CLI(object):
             parser.add_argument(*args, **kwargs)
         self.add_generic_options(generic_options)
 
-    def subcommand(self, *args, **kwargs):
+    def command(self, *args, **kwargs):
         def wrapper(func):
-            self.subcommands.append((func, args, kwargs))
+            self.commands.append((func, args, kwargs))
             return func
         return wrapper
 
@@ -59,12 +59,12 @@ class CLI(object):
                     obj = package.__name__ + obj
             obj = pkg_resources.EntryPoint.parse(
                 'x=%s' % obj).load(False)
-        subcommand.discover_and_call(obj, self.subcommand)
+        command.discover_and_call(obj, self.command)
 
     def load_commands_from_entry_point(self, specifier):
         for ep in pkg_resources.iter_entry_points(specifier):
             module = ep.load()
-            subcommand.discover_and_call(module, self.subcommand)
+            command.discover_and_call(module, self.command)
 
     def parse(self, argv=None):
         if argv is None:  # pragma: no cover
@@ -76,7 +76,7 @@ class CLI(object):
             description=self.description,
         )
         add_generic_options(parser, self.generic_options)
-        add_subcommands(parser, self.subcommands)
+        add_commands(parser, self.commands)
         try_argcomplete(parser)
         try:
             if self.add_help_command:
@@ -129,9 +129,9 @@ def add_generic_options(parser, fns):
     for func in fns:
         func(parser)
 
-def add_subcommands(parser, subcommands):
+def add_commands(parser, commands):
     subparsers = parser.add_subparsers()
-    for func, args, kwargs in subcommands:
+    for func, args, kwargs in commands:
         if len(args) > 1:
             name = args[1]
         else:

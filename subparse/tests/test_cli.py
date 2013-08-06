@@ -100,18 +100,24 @@ def test_help_command(capsys):
     out, err = capsys.readouterr()
     assert 'usage:' in out
 
-#def test_help_default(capsys):
-#    from subparse import CLI
-#
-#    cli = CLI()
-#
-#    @cli.subcommand('subparse.tests.test_cli:foo_main')
-#    def foo(parser):
-#        """
-#        short help
-#        """
-#        parser.add_argument('--bar', action='store_true')
-#
-#    pytest.raises(SystemExit, cli.parse, [])
-#    out, err = capsys.readouterr()
-#    assert 'positional arguments' in out
+def test_bad_options(capsys):
+    from subparse import CLI
+
+    cli = CLI()
+
+    @cli.subcommand('subparse.tests.fixtures.foo')
+    def foo(parser):
+        parser.add_argument('--bar', action='store_true')
+
+    pytest.raises(SystemExit, cli.parse, ['foo', '--missing'])
+    out, err = capsys.readouterr()
+    assert 'usage:' in out
+
+def test_version_default(capsys):
+    from subparse import CLI
+
+    cli = CLI(version='foo')
+
+    pytest.raises(SystemExit, cli.parse, ['--version'])
+    out, err = capsys.readouterr()
+    assert err == 'foo\n'

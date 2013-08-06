@@ -35,6 +35,22 @@ def test_basic_decorator_dict():
     assert app['bar'] is True
     assert result == 0
 
+def test_load_module():
+    from subparse import CLI
+    from subparse.tests.fixtures import foo
+
+    cli = CLI()
+    cli.load_commands(foo)
+
+    args = cli.parse(['bar'])
+    assert args.bar is False
+
+    app = {}
+    result = cli.dispatch(args, context=app)
+    assert app['fn'] == 'bar_main'
+    assert app['bar'] is False
+    assert result == 0
+
 def test_underscore_command_name_converted_to_dash():
     from subparse import CLI
 

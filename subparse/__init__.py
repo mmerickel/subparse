@@ -116,7 +116,7 @@ def add_subcommands(parser, subcommands):
         if len(args) > 1:
             name = args[1]
         else:
-            name = func.__name__
+            name = func.__name__.replace('_', '-')
         doc, description = parse_docstring(func.__doc__)
         subparser = subparsers.add_parser(
             name, description=description, help=doc)

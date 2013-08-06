@@ -43,3 +43,43 @@ def test_basic_decorator_dict():
     result = cli.dispatch(args, context=app)
     assert app['bar'] is True
     assert result == 0
+
+def test_underscore_command_name_converted_to_dash():
+    from subparse import CLI
+
+    cli = CLI()
+
+    @cli.subcommand('subparse.tests.test_cli:foo_main')
+    def foo_bar(parser):
+        """
+        short help
+        """
+        parser.add_argument('--bar', action='store_true')
+
+    args = cli.parse(['foo-bar', '--bar'])
+    assert args.bar is True
+
+    app = {}
+    result = cli.dispatch(args, context=app)
+    assert app['bar'] is True
+    assert result == 0
+
+def test_override_command_name():
+    from subparse import CLI
+
+    cli = CLI()
+
+    @cli.subcommand('subparse.tests.test_cli:foo_main', 'baz')
+    def foo_bar(parser):
+        """
+        short help
+        """
+        parser.add_argument('--bar', action='store_true')
+
+    args = cli.parse(['baz', '--bar'])
+    assert args.bar is True
+
+    app = {}
+    result = cli.dispatch(args, context=app)
+    assert app['bar'] is True
+    assert result == 0

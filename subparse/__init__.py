@@ -35,8 +35,13 @@ class CLI(object):
             self.add_generic_option(
                 '-V', '--version', action='version', version=version)
 
+    def add_generic_options(self, generic_options):
+        self.generic_options.append(generic_options)
+
     def add_generic_option(self, *args, **kwargs):
-        self.generic_options.append((args, kwargs))
+        def generic_options(parser):
+            parser.add_argument(*args, **kwargs)
+        self.add_generic_options(generic_options)
 
     def subcommand(self, *args, **kwargs):
         def wrapper(func):
@@ -98,9 +103,9 @@ def try_argcomplete(parser):
     else:
         argcomplete.autocomplete(parser)
 
-def add_generic_options(parser, options):
-    for args, kwargs in options:
-        parser.add_argument(*args, **kwargs)
+def add_generic_options(parser, fns):
+    for func in fns:
+        func(parser)
 
 def add_subcommands(parser, subcommands):
     subparsers = parser.add_subparsers()

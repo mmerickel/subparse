@@ -119,6 +119,23 @@ def test_underscore_command_name_converted_to_dash():
     assert app['bar'] is True
     assert result == 0
 
+def test_underscore_command_name_preserved():
+    from subparse import CLI
+
+    cli = CLI()
+
+    @cli.subcommand('subparse.tests.fixtures.foo', 'foo_bar')
+    def foo_bar(parser):
+        parser.add_argument('--bar', action='store_true')
+
+    args = cli.parse(['foo_bar', '--bar'])
+    assert args.bar is True
+
+    app = {}
+    result = cli.dispatch(args, context=app)
+    assert app['bar'] is True
+    assert result == 0
+
 def test_override_command_name():
     from subparse import CLI
 

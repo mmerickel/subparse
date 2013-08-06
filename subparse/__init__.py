@@ -62,7 +62,7 @@ class CLI(object):
     def parse(self, argv=None):
         if argv is None:
             argv = sys.argv[1:]
-        argv = map(str, argv)
+        argv = list(map(str, argv))
         parser = MyArgumentParser(
             prog=self.prog,
             usage=self.usage,

@@ -23,11 +23,13 @@ class CLI(object):
                  usage=None,
                  description=None,
                  version=None,
+                 add_help_command=True,
                  ):
         self.prog = prog
         self.usage = usage
         self.description = description
         self.version = version
+        self.add_help_command = add_help_command
         self.generic_options = []
         self.subcommands = []
 
@@ -70,6 +72,11 @@ class CLI(object):
         add_subcommands(parser, self.subcommands)
         try_argcomplete(parser)
         try:
+            if self.add_help_command:
+                if argv and argv[0] == 'help':
+                    argv.pop(0)
+                    argv.append('--help')
+
             args = parser.parse_args(argv)
             if not hasattr(args, 'mainloc'):
                 return parser.parse_args(['-h'])
@@ -91,6 +98,8 @@ class CLI(object):
 
 def parse_docstring(txt):
     description = txt
+    if txt is None:
+        txt = ''
     i = txt.find('.')
     if i == -1:
         doc = txt

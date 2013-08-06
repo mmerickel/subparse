@@ -5,11 +5,8 @@ def test_basic():
 
     cli = CLI()
 
-    @cli.subcommand('subparse.tests.test_cli:foo_main')
+    @cli.subcommand('subparse.tests.fixtures.foo')
     def foo(parser):
-        """
-        short help
-        """
         parser.add_argument('--bar', action='store_true')
 
     args = cli.parse(['foo', '--bar'])
@@ -20,17 +17,11 @@ def test_basic():
     assert app['bar'] is True
     assert result == 0
 
-def foo_main(app, args):
-    app['bar'] = args.bar
-
 def test_basic_decorator_dict():
     from subparse import CLI, subcommand
 
-    @subcommand('subparse.tests.test_cli:foo_main')
+    @subcommand('subparse.tests.fixtures.foo')
     def foo(parser):
-        """
-        short help
-        """
         parser.add_argument('--bar', action='store_true')
 
     cli = CLI()
@@ -49,11 +40,8 @@ def test_underscore_command_name_converted_to_dash():
 
     cli = CLI()
 
-    @cli.subcommand('subparse.tests.test_cli:foo_main')
+    @cli.subcommand('subparse.tests.fixtures.foo')
     def foo_bar(parser):
-        """
-        short help
-        """
         parser.add_argument('--bar', action='store_true')
 
     args = cli.parse(['foo-bar', '--bar'])
@@ -69,11 +57,8 @@ def test_override_command_name():
 
     cli = CLI()
 
-    @cli.subcommand('subparse.tests.test_cli:foo_main', 'baz')
+    @cli.subcommand('subparse.tests.fixtures.foo', 'baz')
     def foo_bar(parser):
-        """
-        short help
-        """
         parser.add_argument('--bar', action='store_true')
 
     args = cli.parse(['baz', '--bar'])
@@ -83,3 +68,50 @@ def test_override_command_name():
     result = cli.dispatch(args, context=app)
     assert app['bar'] is True
     assert result == 0
+
+def test_alternate_main():
+    from subparse import CLI
+
+    cli = CLI()
+
+    @cli.subcommand('subparse.tests.fixtures.foo:foo_main')
+    def foo(parser):
+        parser.add_argument('--bar', action='store_true')
+
+    args = cli.parse(['foo', '--bar'])
+    assert args.bar is True
+
+    app = {}
+    result = cli.dispatch(args, context=app)
+    assert app['fn'] == 'foo_main'
+    assert app['bar'] is True
+    assert result == 0
+
+def test_help_command(capsys):
+    from subparse import CLI
+
+    cli = CLI()
+
+    @cli.subcommand('subparse.tests.fixtures.foo')
+    def foo(parser):
+        parser.add_argument('--bar', action='store_true')
+
+    pytest.raises(SystemExit, cli.parse, ['help', 'foo'])
+    out, err = capsys.readouterr()
+    assert 'usage:' in out
+
+#def test_help_default(capsys):
+#    from subparse import CLI
+#
+#    cli = CLI()
+#
+#    @cli.subcommand('subparse.tests.test_cli:foo_main')
+#    def foo(parser):
+#        """
+#        short help
+#        """
+#        parser.add_argument('--bar', action='store_true')
+#
+#    pytest.raises(SystemExit, cli.parse, [])
+#    out, err = capsys.readouterr()
+#    assert 'positional arguments' in out

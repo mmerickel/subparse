@@ -53,10 +53,8 @@ restrictions between the subcommands and the cli object.
 
 ::
 
-    import myapp.info
-
     cli = CLI()
-    cli.load_commands(myapp.info)
+    cli.load_commands('myapp.info')
 
 Entry Points
 ============

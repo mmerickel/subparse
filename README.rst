@@ -14,7 +14,19 @@ Basic Usage
 
     from subparse import CLI
 
-    cli = CLI(version='0.0')
+    class MyApp(object):
+        def __init__(self, args):
+            self.args = args
+
+        def info(self, *msg):
+            if not self.args.quiet:
+                print('[info]', *msg)
+
+    def app_factory(cli, args):
+        return MyApp(args)
+
+    cli = CLI(version='0.0', context_factory=context_factory)
+
     cli.add_generic_option('--quiet', action='store_true',
                            help='turn of debugging')
 
@@ -29,11 +41,10 @@ Basic Usage
                             help='turn on bar')
 
     def foo_main(app, args):
-        pass
+        app.info('Hello World!')
 
-    args = cli.parse()
-    app = MyApp(args)
-    cli.dispatch(args, context=app)
+    result = cli.run()
+    sys.exit(result)
 
 Lazy Decorators
 ===============

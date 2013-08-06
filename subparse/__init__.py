@@ -70,11 +70,14 @@ class CLI(object):
         add_subcommands(parser, self.subcommands)
         try_argcomplete(parser)
         try:
-            return parser.parse_args(argv)
+            args = parser.parse_args(argv)
+            if not hasattr(args, 'mainloc'):
+                return parser.parse_args(['-h'])
+            return args
         except parser.ArgumentError as e:
             if not argv:
                 return parser.parse_args(['-h'])
-            parser.print_usage()
+            parser.print_help()
             parser.exit(2, '{0}: error: {1}\n'.format(parser.prog, e.args[0]))
 
     def dispatch(self, args, context=None):

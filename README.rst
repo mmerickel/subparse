@@ -22,13 +22,15 @@ Basic Usage
             if not self.args.quiet:
                 print('[info]', *msg)
 
-    def app_factory(cli, args):
+    def context_factory(cli, args):
         return MyApp(args)
 
-    cli = CLI(version='0.0', context_factory=context_factory)
+    def generic_options(parser):
+        parser.add_argument('--quiet', action='store_true',
+                            help='turn of debugging')
 
-    cli.add_generic_option('--quiet', action='store_true',
-                           help='turn of debugging')
+    cli = CLI(version='0.0', context_factory=context_factory)
+    cli.add_generic_options(generic_options)
 
     @cli.command(__name__ + ':foo_main')
     def foo(parser):

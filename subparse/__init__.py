@@ -38,6 +38,14 @@ class CLI(object):
                 '-V', '--version', action='version', version=version)
 
     def add_generic_options(self, generic_options):
+        """
+        Register a function containing generic options.
+
+        The function should accept an instance of an
+        :class:`argparse.ArgumentParser` and use it to define extra
+        arguments and options.
+
+        """
         self.generic_options.append(generic_options)
 
     def add_generic_option(self, *args, **kwargs):
@@ -46,12 +54,32 @@ class CLI(object):
         self.add_generic_options(generic_options)
 
     def command(self, *args, **kwargs):
+        """
+        Attach a command to the current :class:`CLI` object.
+
+        The function should accept an instance of an
+        :class:`argparse.ArgumentParser` and use it to define extra
+        arguments and options. These options will only affect the specified
+        command.
+
+        """
         def wrapper(func):
             self.commands.append((func, args, kwargs))
             return func
         return wrapper
 
     def load_commands(self, obj):
+        """
+        Load commands defined on an arbitrary object.
+
+        All functions decorated with the :func:`subparse.command` decorator
+        attached the specified object will be loaded. The object may
+        be a dictionary, an arbitrary python object, or a dotted path.
+
+        The dotted path may be absolute, or relative to the current package
+        by specifying a leading '.' (e.g. ``'.commands'``).
+
+        """
         if isinstance(obj, str):
             if obj.startswith('.') or obj.startswith(':'):
                 package = caller_package()
@@ -64,6 +92,14 @@ class CLI(object):
         command.discover_and_call(obj, self.command)
 
     def load_commands_from_entry_point(self, specifier):
+        """
+        Load commands defined within a pkg_resources entry point.
+
+        Each entry will be a module that should be searched for functions
+        decorated with the :func:`subparse.command` decorator. This
+        operation is not recursive.
+
+        """
         for ep in pkg_resources.iter_entry_points(specifier):
             module = ep.load()
             command.discover_and_call(module, self.command)
@@ -109,6 +145,16 @@ class CLI(object):
         return method(context, args) or 0
 
     def run(self, argv=None):
+        """
+        Run the command-line application.
+
+        This will dispatch to the specified function or raise a
+        ``SystemExit`` and output the appropriate usage information
+        if there is an error parsing the arguments.
+
+        The default ``argv`` is equivalent to ``sys.argv[1:]``.
+
+        """
         args = self.parse(argv)
         context = None
         if self.context_factory:

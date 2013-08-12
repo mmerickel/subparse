@@ -1,3 +1,10 @@
+0.3.3 (2013-08-12)
+==================
+
+No functional changes from 0.3.2.
+
+- Improve documentation.
+
 0.3.2 (2013-08-06)
 ==================
 

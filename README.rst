@@ -54,6 +54,9 @@ Lazy Decorators
 Commands can be defined lazily and picked up later. This removes ordering
 restrictions between the commands and the cli object.
 
+A module containing commands can be defined irrespective of the actual
+``CLI`` instance:
+
 ::
 
     # myapp/info.py
@@ -63,6 +66,9 @@ restrictions between the commands and the cli object.
     @command('myapp.info:foo_main')
     def foo(parser):
         """perform foo"""
+
+Later, when an instance of a ``CLI`` is created, the commands can be loaded
+and registered:
 
 ::
 
@@ -86,10 +92,8 @@ An extension application would then define the external module that should
 be searched for commands. Again this allows the commands themselves to be
 defined independently of the main functions, improving import speed.
 
-::
-
-    [myapp.commands]
-    barpkg = barpkg.commands
+An extension package should define a module containing the supported
+commands:
 
 ::
 
@@ -101,10 +105,25 @@ defined independently of the main functions, improving import speed.
     def bar(parser):
         """perform bar"""
 
+The package should also define the function to be called for each command.
+Optionally in a separate module to avoid importing run-time dependencies
+during parsing:
+
 ::
 
     # barpkg/bar.py
 
     def main(app, args):
         pass
+
+The package can then broadcast the module ``barpkg.commands``
+containing the supported commands:
+
+::
+
+    [myapp.commands]
+    barpkg = barpkg.commands
+
+Now when your extension package is installed the commands will automatically
+become available.
 

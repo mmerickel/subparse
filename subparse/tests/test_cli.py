@@ -163,7 +163,7 @@ def test_version_default(capsys):
 
     pytest.raises(SystemExit, cli.run, ['--version'])
     out, err = capsys.readouterr()
-    assert err == 'foo\n'
+    assert err + out == 'foo\n'
 
 def test_docstring(capsys):
     app = {}

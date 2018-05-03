@@ -1,3 +1,13 @@
+0.4 (2018-05-03)
+================
+
+- Drop Python 2.6, 3.2 and 3.3 support.
+
+- Add Python 3.4, 3.5, 3.6 support.
+
+- Allow the ``context_factory`` to be a generator which yields the context.
+  This allows the context to wrap the full lifecycle of the CLI.
+
 0.3.3 (2013-08-12)
 ==================
 

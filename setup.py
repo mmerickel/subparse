@@ -22,9 +22,6 @@ except:
 install_requires = [
 ]
 
-if py_version < (2, 7):
-    install_requires += ['argparse']
-
 tests_require = install_requires + [
     'pytest',
 ]
@@ -34,14 +31,14 @@ class PyTest(TestCommand):
         TestCommand.finalize_options(self)
         self.test_args = ['--pyargs', self.test_suite]
     def run_tests(self):
-        #import here, cause outside the eggs aren't loaded
+        #  import here, cause outside the eggs aren't loaded
         import pytest
         result = pytest.main(self.test_args)
         sys.exit(result)
 
 setup(
     name='subparse',
-    version='0.3.3',
+    version='0.4',
     description='A command line helper library for extensible subcommands',
     long_description=README + '\n\n' + CHANGES,
     url='https://github.com/mmerickel/subparse',
@@ -54,10 +51,11 @@ setup(
         'Programming Language :: Python',
         'Programming Language :: Python :: 2',
         'Programming Language :: Python :: 3',
-        'Programming Language :: Python :: 2.6',
         'Programming Language :: Python :: 2.7',
-        'Programming Language :: Python :: 3.2',
         'Programming Language :: Python :: 3.3',
+        'Programming Language :: Python :: 3.4',
+        'Programming Language :: Python :: 3.5',
+        'Programming Language :: Python :: 3.6',
     ],
     keywords='argparse cli commandline subcommand',
     author='Michael Merickel',

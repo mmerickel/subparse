@@ -1,4 +1,6 @@
 import argparse
+from contextlib import contextmanager
+import inspect
 import pkg_resources
 import sys
 
@@ -156,10 +158,20 @@ class CLI(object):
 
         """
         args = self.parse(argv)
-        context = None
-        if self.context_factory:
-            context = self.context_factory(self, args)
-        return self.dispatch(args, context=context)
+        context_factory = contextmanager(make_generator(self.context_factory))
+        with context_factory(self, args) as context:
+            return self.dispatch(args, context=context)
+
+
+def make_generator(fn):
+    if inspect.isgeneratorfunction(fn):
+        return fn
+    def wrapper(*a, **kw):
+        ctx = None
+        if fn is not None:
+            ctx = fn(*a, **kw)
+        yield ctx
+    return wrapper
 
 
 def parse_docstring(txt):

@@ -127,3 +127,22 @@ containing the supported commands:
 Now when your extension package is installed the commands will automatically
 become available.
 
+Context Factory
+===============
+
+The ``context_factory`` argument to the ``subparse.CLI`` allows for defining
+an object that is passed to all commands. This factory can also be a
+generator, allowing it to ``yield`` the context object and then cleanup
+after the command is complete. For example:
+
+::
+
+    import transaction
+
+    def context_factory(cli, args):
+        tm = transaction.TransactionManager(explicit=True)
+        with tm:
+          yield tm
+
+In the above example the transaction manager is available to all subcommands
+and it can commit/abort based on whether the command raises an exception.

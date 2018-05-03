@@ -22,6 +22,22 @@ def test_basic():
     assert app['bar'] is True
     assert result == 0
 
+def test_context_generator():
+    out = []
+    def context_factory(cli, args):
+        out.append(1)
+        yield {}
+        out.append(2)
+    cli = make_cli(context_factory=context_factory)
+
+    @cli.command('subparse.tests.fixtures.foo')
+    def foo(parser):
+        parser.add_argument('--bar', action='store_true')
+
+    result = cli.run(['foo', '--bar'])
+    assert result == 0
+    assert out == [1, 2]
+
 def test_basic_decorator_dict():
     from subparse import command
 

@@ -17,6 +17,7 @@ class MyArgumentParser(argparse.ArgumentParser):
         raise self.ArgumentError(message)
 
 class CLI(object):
+    ArgumentParser = MyArgumentParser
 
     def __init__(self,
                  prog=None,
@@ -110,10 +111,11 @@ class CLI(object):
         if argv is None:  # pragma: no cover
             argv = sys.argv[1:]
         argv = [str(v) for v in argv]
-        parser = MyArgumentParser(
+        parser = self.ArgumentParser(
             prog=self.prog,
             usage=self.usage,
             description=self.description,
+            formatter_class=argparse.RawDescriptionHelpFormatter,
         )
         add_generic_options(parser, self.generic_options)
         add_commands(parser, self.commands)

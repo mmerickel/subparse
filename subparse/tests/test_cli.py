@@ -182,19 +182,26 @@ def test_version_default(capsys):
     assert err + out == 'foo\n'
 
 def test_docstring(capsys):
-    app = {}
-    cli = make_cli(context=app)
+    from subparse import parse_docstring
 
-    @cli.command('subparse.tests.fixtures.foo')
-    def foo(parser):
-        """foo. bar"""
+    short, long = parse_docstring(
+        '''
+        short1
+        short2
 
-    pytest.raises(SystemExit, cli.run, ['--help'])
-    out, err = capsys.readouterr()
-    assert 'foo.' in out
-    assert 'bar' not in out
+        long1
+        long2
+        '''
+    )
+    assert short == 'short1 short2'
+    assert long == 'long1\nlong2'
 
-    pytest.raises(SystemExit, cli.run, ['foo', '--help'])
-    out, err = capsys.readouterr()
-    assert 'foo.' in out
-    assert 'bar' in out
+    short, long = parse_docstring(
+        '''hello world
+        this is part of short
+
+        this is part of long
+        '''
+    )
+    assert short == 'hello world this is part of short'
+    assert long == 'this is part of long'

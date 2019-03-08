@@ -38,7 +38,7 @@ class PyTest(TestCommand):
 
 setup(
     name='subparse',
-    version='0.4',
+    version='0.5',
     description='A command line helper library for extensible subcommands',
     long_description=README + '\n\n' + CHANGES,
     url='https://github.com/mmerickel/subparse',
@@ -56,10 +56,11 @@ setup(
         'Programming Language :: Python :: 3.4',
         'Programming Language :: Python :: 3.5',
         'Programming Language :: Python :: 3.6',
+        'Programming Language :: Python :: 3.7',
     ],
     keywords='argparse cli commandline subcommand',
     author='Michael Merickel',
-    author_email='me@m.merickel.org',
+    author_email='oss@m.merickel.org',
     license='MIT',
     packages=find_packages(),
     include_package_data=True,

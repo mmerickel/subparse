@@ -1,3 +1,15 @@
+0.5 (2019-03-08)
+================
+
+- Add Python 3.7 support.
+
+- Fix a deprecation warning coming from setuptools.
+
+- Conform more closely to PEP-257 for docstring parsing.
+
+- Modify how the help text is displayed using the
+  ``argparse.RawDescriptionHelpFormatter`` formatter class.
+
 0.4 (2018-05-03)
 ================
 

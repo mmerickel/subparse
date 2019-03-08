@@ -90,8 +90,7 @@ class CLI(object):
                     obj = package.__name__
                 else:
                     obj = package.__name__ + obj
-            obj = pkg_resources.EntryPoint.parse(
-                'x=%s' % obj).load(False)
+            obj = pkg_resources.EntryPoint.parse('x=%s' % obj).resolve()
         command.discover_and_call(obj, self.command)
 
     def load_commands_from_entry_point(self, specifier):
@@ -176,16 +175,49 @@ def make_generator(fn):
     return wrapper
 
 
-def parse_docstring(txt):
-    description = txt
-    if txt is None:
-        txt = ''
-    i = txt.find('.')
-    if i == -1:
-        doc = txt
-    else:
-        doc = txt[:i + 1]
-    return doc, description
+def trim(docstring):
+    """ Trim function from PEP-257."""
+    if not docstring:
+        return ''
+    # Convert tabs to spaces (following the normal Python rules)
+    # and split into a list of lines:
+    lines = docstring.expandtabs().splitlines()
+    # Determine minimum indentation (first line doesn't count):
+    indent = sys.maxsize
+    for line in lines[1:]:
+        stripped = line.lstrip()
+        if stripped:
+            indent = min(indent, len(line) - len(stripped))
+    # Remove indentation (first line is special):
+    trimmed = [lines[0].strip()]
+    if indent < sys.maxsize:
+        for line in lines[1:]:
+            trimmed.append(line[indent:].rstrip())
+    # Strip off trailing and leading blank lines:
+    while trimmed and not trimmed[-1]:
+        trimmed.pop()
+    while trimmed and not trimmed[0]:
+        trimmed.pop(0)
+    # Return a single string:
+    return '\n'.join(trimmed)
+
+
+def parse_docstring(docstring):
+    """
+    Parse a PEP-257 docstring.
+
+    SHORT -> blank line -> LONG
+
+    """
+    short_desc = long_desc = ''
+    if docstring:
+        docstring = trim(docstring.lstrip('\n'))
+        lines = docstring.split('\n\n', 1)
+        short_desc = lines[0].strip().replace('\n', ' ')
+
+        if len(lines) > 1:
+            long_desc = lines[1].strip()
+    return short_desc, long_desc
 
 def try_argcomplete(parser):  # pragma: no cover
     try:
@@ -206,9 +238,9 @@ def add_commands(parser, commands):
             name = args[1]
         else:
             name = func.__name__.replace('_', '-')
-        doc, description = parse_docstring(func.__doc__)
+        short_desc, long_desc = parse_docstring(func.__doc__)
         subparser = subparsers.add_parser(
-            name, description=description, help=doc)
+            name, description=long_desc, help=short_desc)
         func(subparser)
         mainloc = args[0]
         if isinstance(mainloc, str):

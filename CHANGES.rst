@@ -1,3 +1,8 @@
+0.5.1 (2019-03-08)
+==================
+
+- Use the ``argparse.RawTextHelpFormatter`` formatter class.
+
 0.5 (2019-03-08)
 ================
 

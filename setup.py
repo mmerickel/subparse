@@ -38,7 +38,7 @@ class PyTest(TestCommand):
 
 setup(
     name='subparse',
-    version='0.5',
+    version='0.5.1',
     description='A command line helper library for extensible subcommands',
     long_description=README + '\n\n' + CHANGES,
     url='https://github.com/mmerickel/subparse',

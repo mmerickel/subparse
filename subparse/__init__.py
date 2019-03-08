@@ -114,7 +114,7 @@ class CLI(object):
             prog=self.prog,
             usage=self.usage,
             description=self.description,
-            formatter_class=argparse.RawDescriptionHelpFormatter,
+            formatter_class=argparse.RawTextHelpFormatter,
         )
         add_generic_options(parser, self.generic_options)
         add_commands(parser, self.commands)
@@ -219,6 +219,17 @@ def parse_docstring(docstring):
             long_desc = lines[1].strip()
     return short_desc, long_desc
 
+def docstring_to_parser_args(docstring):
+    short, long = parse_docstring(docstring)
+
+    if long:
+        long = short + '\n\n' + long
+    return dict(
+        help=short,
+        description=long,
+        formatter_class=argparse.RawTextHelpFormatter,
+    )
+
 def try_argcomplete(parser):  # pragma: no cover
     try:
         import argcomplete
@@ -240,7 +251,9 @@ def add_commands(parser, commands):
             name = func.__name__.replace('_', '-')
         short_desc, long_desc = parse_docstring(func.__doc__)
         subparser = subparsers.add_parser(
-            name, description=long_desc, help=short_desc)
+            name,
+            **docstring_to_parser_args(func.__doc__)
+        )
         func(subparser)
         mainloc = args[0]
         if isinstance(mainloc, str):

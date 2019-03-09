@@ -193,10 +193,7 @@ def parse_args(cli, argv):
                 argv.append('--help')
 
         args = parser.parse_args(argv)
-        meta = getattr(args, cli._namespace_key, None)
-        if meta is None:
-            parser.print_help(file=sys.stderr)
-            parser.exit(2)
+        meta = getattr(args, cli._namespace_key)
         return meta, args
     except parser.ArgumentError as e:
         parser.print_help(file=sys.stderr)
@@ -288,7 +285,11 @@ def add_generic_options(parser, fns):
 
 
 def add_commands(parser, commands, namespace_key):
-    subparsers = parser.add_subparsers(title='commands', metavar='<command>')
+    subparsers = parser.add_subparsers(
+        title='commands',
+        metavar='<command>',
+        required=True,
+    )
     for meta in sorted(commands.values(), key=lambda m: m.name):
         subparser = subparsers.add_parser(
             meta.name,

@@ -150,47 +150,6 @@ class CLI(object):
             module = ep.load()
             command.discover_and_call(module, self.command)
 
-    def parse(self, argv=None):
-        if argv is None:  # pragma: no cover
-            argv = sys.argv[1:]
-        argv = [str(v) for v in argv]
-        parser = self._ArgumentParser(
-            prog=self.prog,
-            usage=self.usage,
-            description=self.description,
-            formatter_class=argparse.RawTextHelpFormatter,
-        )
-        add_generic_options(parser, self.generic_options)
-        add_commands(parser, self.commands, self._namespace_key)
-        try_argcomplete(parser)
-        try:
-            if self.add_help_command:
-                if argv and argv[0] == 'help':
-                    argv.pop(0)
-                    argv.append('--help')
-
-            args = parser.parse_args(argv)
-            if not hasattr(args, self._namespace_key):
-                return parser.parse_args(['-h'])
-            return args
-        except parser.ArgumentError as e:
-            if not argv:
-                return parser.parse_args(['-h'])
-            parser.print_help()
-            parser.exit(2, '{0}: error: {1}\n'.format(parser.prog, e.args[0]))
-
-    def dispatch(self, args, context=None):
-        meta = getattr(args, self._namespace_key)
-        main = meta.main
-        if isinstance(main, str):
-            mod = main
-            func = 'main'
-            if ':' in mod:
-                mod, func = mod.split(':')
-            mod = __import__(mod, None, None, ['__doc__'])
-            main = getattr(mod, func)
-        return main(context, args) or 0
-
     def run(self, argv=None):
         """
         Run the command-line application.
@@ -202,10 +161,53 @@ class CLI(object):
         The default ``argv`` is equivalent to ``sys.argv[1:]``.
 
         """
-        args = self.parse(argv)
+        if argv is None:  # pragma: no cover
+            argv = sys.argv[1:]
+        argv = [str(v) for v in argv]
+        args = parse_args(self, argv)
         context_factory = contextmanager(make_generator(self.context_factory))
         with context_factory(self, args) as context:
-            return self.dispatch(args, context=context)
+            return dispatch(self, args, context=context)
+
+
+def parse_args(cli, argv):
+    parser = cli._ArgumentParser(
+        prog=cli.prog,
+        usage=cli.usage,
+        description=cli.description,
+        formatter_class=argparse.RawTextHelpFormatter,
+    )
+    add_generic_options(parser, cli.generic_options)
+    add_commands(parser, cli.commands, cli._namespace_key)
+    try_argcomplete(parser)
+    try:
+        if cli.add_help_command:
+            if argv and argv[0] == 'help':
+                argv.pop(0)
+                argv.append('--help')
+
+        args = parser.parse_args(argv)
+        if not hasattr(args, cli._namespace_key):
+            return parser.parse_args(['-h'])
+        return args
+    except parser.ArgumentError as e:
+        if not argv:
+            return parser.parse_args(['-h'])
+        parser.print_help()
+        parser.exit(2, '{0}: error: {1}\n'.format(parser.prog, e.args[0]))
+
+
+def dispatch(cli, args, context=None):
+    meta = getattr(args, cli._namespace_key)
+    main = meta.main
+    if isinstance(main, str):
+        mod = main
+        func = 'main'
+        if ':' in mod:
+            mod, func = mod.split(':')
+        mod = __import__(mod, None, None, ['__doc__'])
+        main = getattr(mod, func)
+    return main(context, args) or 0
 
 
 def make_generator(fn):

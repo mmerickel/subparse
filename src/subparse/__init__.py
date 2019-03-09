@@ -172,7 +172,8 @@ class CLI(object):
         meta, args = parse_args(self, argv)
         context_factory = contextmanager(make_generator(self.context_factory))
         with context_factory(self, args, **meta.context_kwargs) as context:
-            return dispatch(meta, args, context=context)
+            main = load_main(meta)
+            return main(context, args) or 0
 
 
 def parse_args(cli, argv):
@@ -202,7 +203,7 @@ def parse_args(cli, argv):
         parser.exit(2, '{0}: error: {1}\n'.format(parser.prog, e.args[0]))
 
 
-def dispatch(meta, args, context=None):
+def load_main(meta):
     main = meta.main
     if isinstance(main, str):
         mod = main
@@ -211,7 +212,7 @@ def dispatch(meta, args, context=None):
             mod, func = mod.split(':')
         mod = __import__(mod, None, None, ['__doc__'])
         main = getattr(mod, func)
-    return main(context, args) or 0
+    return main
 
 
 def make_generator(fn):

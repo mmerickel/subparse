@@ -15,17 +15,18 @@ CommandMeta = namedtuple(
 )
 
 
-class MyArgumentParser(argparse.ArgumentParser):
-    class ArgumentError(Exception):
-        """An error from the argparse subsystem."""
+class ArgumentParserError(Exception):
+    """An error from the argparse subsystem."""
 
+
+class ArgumentParser(argparse.ArgumentParser):
     def error(self, message):
         """Raise errors instead of printing and raising SystemExit."""
-        raise self.ArgumentError(message)
+        raise ArgumentParserError(message)
 
 
 class CLI(object):
-    _ArgumentParser = MyArgumentParser
+    _ArgumentParser = ArgumentParser
     _namespace_key = '_subparse_meta'
 
     def __init__(
@@ -195,7 +196,7 @@ def parse_args(cli, argv):
         args = parser.parse_args(argv)
         meta = getattr(args, cli._namespace_key)
         return meta, args
-    except parser.ArgumentError as e:
+    except ArgumentParserError as e:
         parser.print_help(file=sys.stderr)
         parser.exit(2, '{0}: error: {1}\n'.format(parser.prog, e.args[0]))
 

@@ -77,11 +77,11 @@ class lazydecorator:
                 continue
             decitems.append((num, func_orig, siglist))
         decitems.sort()
-        l = []
+        result = []
         for num, func_orig, siglist in decitems:
             for args, kwargs in siglist:
-                l.append((func_orig, args, kwargs))
-        return l
+                result.append((func_orig, args, kwargs))
+        return result
 
     def discover_and_call(self, obj, dec):
         for func, args, kwargs in self.discover(obj):

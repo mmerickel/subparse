@@ -1,4 +1,5 @@
 import argparse
+from collections import namedtuple
 from contextlib import contextmanager
 import inspect
 import pkg_resources
@@ -7,6 +8,14 @@ import sys
 from .lazydecorator import lazydecorator
 
 command = lazydecorator()
+
+CommandMeta = namedtuple('CommandMeta', [
+    'factory',
+    'main',
+    'name',
+    'help',
+    'description',
+])
 
 class MyArgumentParser(argparse.ArgumentParser):
     class ArgumentError(Exception):
@@ -17,7 +26,8 @@ class MyArgumentParser(argparse.ArgumentParser):
         raise self.ArgumentError(message)
 
 class CLI(object):
-    ArgumentParser = MyArgumentParser
+    _ArgumentParser = MyArgumentParser
+    _namespace_key = '_subparse_meta'
 
     def __init__(self,
                  prog=None,
@@ -56,6 +66,38 @@ class CLI(object):
             parser.add_argument(*args, **kwargs)
         self.add_generic_options(generic_options)
 
+    def add_command(self, factory, main, name=None):
+        """
+        Attach a command directly to the :class:`CLI` object.
+
+        """
+        if name is None:
+            name = factory.__name__.replace('_', '-')
+
+        short_desc, long_desc = parse_docstring(factory.__doc__)
+        if long_desc:
+            long_desc = short_desc + '\n\n' + long_desc
+
+        # determine the absolute import string if relative
+        if (
+            isinstance(main, str)
+            and (main.startswith('.') or main.startswith(':'))
+        ):
+            module = __import__(factory.__module__, None, None, ['__doc__'])
+            package = package_for_module(module)
+            if main in ['.', ':']:
+                main = package.__name__
+            else:
+                main = package.__name__ + main
+
+        self.commands.append(CommandMeta(
+            factory=factory,
+            main=main,
+            name=name,
+            help=short_desc,
+            description=long_desc,
+        ))
+
     def command(self, *args, **kwargs):
         """
         Attach a command to the current :class:`CLI` object.
@@ -67,7 +109,7 @@ class CLI(object):
 
         """
         def wrapper(func):
-            self.commands.append((func, args, kwargs))
+            self.add_command(func, *args, **kwargs)
             return func
         return wrapper
 
@@ -110,14 +152,14 @@ class CLI(object):
         if argv is None:  # pragma: no cover
             argv = sys.argv[1:]
         argv = [str(v) for v in argv]
-        parser = self.ArgumentParser(
+        parser = self._ArgumentParser(
             prog=self.prog,
             usage=self.usage,
             description=self.description,
             formatter_class=argparse.RawTextHelpFormatter,
         )
         add_generic_options(parser, self.generic_options)
-        add_commands(parser, self.commands)
+        add_commands(parser, self.commands, self._namespace_key)
         try_argcomplete(parser)
         try:
             if self.add_help_command:
@@ -126,7 +168,7 @@ class CLI(object):
                     argv.append('--help')
 
             args = parser.parse_args(argv)
-            if not hasattr(args, 'mainloc'):
+            if not hasattr(args, self._namespace_key):
                 return parser.parse_args(['-h'])
             return args
         except parser.ArgumentError as e:
@@ -136,16 +178,16 @@ class CLI(object):
             parser.exit(2, '{0}: error: {1}\n'.format(parser.prog, e.args[0]))
 
     def dispatch(self, args, context=None):
-        if isinstance(args.mainloc, str):
-            mod = args.mainloc
+        meta = getattr(args, self._namespace_key)
+        main = meta.main
+        if isinstance(main, str):
+            mod = main
             func = 'main'
             if ':' in mod:
                 mod, func = mod.split(':')
             mod = __import__(mod, None, None, ['__doc__'])
-            method = getattr(mod, func)
-        else:
-            method = args.mainloc
-        return method(context, args) or 0
+            main = getattr(mod, func)
+        return main(context, args) or 0
 
     def run(self, argv=None):
         """
@@ -201,7 +243,6 @@ def trim(docstring):
     # Return a single string:
     return '\n'.join(trimmed)
 
-
 def parse_docstring(docstring):
     """
     Parse a PEP-257 docstring.
@@ -219,17 +260,6 @@ def parse_docstring(docstring):
             long_desc = lines[1].strip()
     return short_desc, long_desc
 
-def docstring_to_parser_args(docstring):
-    short, long = parse_docstring(docstring)
-
-    if long:
-        long = short + '\n\n' + long
-    return dict(
-        help=short,
-        description=long,
-        formatter_class=argparse.RawTextHelpFormatter,
-    )
-
 def try_argcomplete(parser):  # pragma: no cover
     try:
         import argcomplete
@@ -242,29 +272,17 @@ def add_generic_options(parser, fns):
     for func in fns:
         func(parser)
 
-def add_commands(parser, commands):
+def add_commands(parser, commands, namespace_key):
     subparsers = parser.add_subparsers(title='commands', metavar='<command>')
-    for func, args, kwargs in commands:
-        if len(args) > 1:
-            name = args[1]
-        else:
-            name = func.__name__.replace('_', '-')
-        short_desc, long_desc = parse_docstring(func.__doc__)
+    for meta in commands:
         subparser = subparsers.add_parser(
-            name,
-            **docstring_to_parser_args(func.__doc__)
+            meta.name,
+            help=meta.help,
+            description=meta.description,
+            formatter_class=argparse.RawTextHelpFormatter,
         )
-        func(subparser)
-        mainloc = args[0]
-        if isinstance(mainloc, str):
-            if mainloc.startswith('.') or mainloc.startswith(':'):
-                module = __import__(func.__module__, None, None, ['__doc__'])
-                package = package_for_module(module)
-                if mainloc in ['.', ':']:
-                    mainloc = package.__name__
-                else:
-                    mainloc = package.__name__ + mainloc
-        subparser.set_defaults(mainloc=mainloc)
+        meta.factory(subparser)
+        subparser.set_defaults(**{namespace_key: meta})
 
 # stolen from pyramid.path
 def caller_module(level=2):

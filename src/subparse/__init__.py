@@ -196,6 +196,7 @@ def parse_args(cli, argv):
         args = parser.parse_args(argv)
         meta = getattr(args, cli._namespace_key)
         return meta, args
+
     except ArgumentParserError as e:
         parser.print_help(file=sys.stderr)
         parser.exit(2, '{0}: error: {1}\n'.format(parser.prog, e.args[0]))
@@ -287,9 +288,7 @@ def add_generic_options(parser, fns):
 
 def add_commands(parser, commands, namespace_key):
     subparsers = parser.add_subparsers(
-        title='commands',
-        metavar='<command>',
-        required=True,
+        title='commands', metavar='<command>', required=True
     )
     for meta in sorted(commands.values(), key=lambda m: m.name):
         subparser = subparsers.add_parser(

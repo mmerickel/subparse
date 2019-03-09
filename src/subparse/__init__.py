@@ -9,13 +9,10 @@ from .lazydecorator import lazydecorator
 
 command = lazydecorator()
 
-CommandMeta = namedtuple('CommandMeta', [
-    'factory',
-    'main',
-    'name',
-    'help',
-    'description',
-])
+CommandMeta = namedtuple(
+    'CommandMeta', ['factory', 'main', 'name', 'help', 'description']
+)
+
 
 class MyArgumentParser(argparse.ArgumentParser):
     class ArgumentError(Exception):
@@ -25,18 +22,20 @@ class MyArgumentParser(argparse.ArgumentParser):
         """Raise errors instead of printing and raising SystemExit."""
         raise self.ArgumentError(message)
 
+
 class CLI(object):
     _ArgumentParser = MyArgumentParser
     _namespace_key = '_subparse_meta'
 
-    def __init__(self,
-                 prog=None,
-                 usage=None,
-                 description=None,
-                 version=None,
-                 add_help_command=True,
-                 context_factory=None,
-                 ):
+    def __init__(
+        self,
+        prog=None,
+        usage=None,
+        description=None,
+        version=None,
+        add_help_command=True,
+        context_factory=None,
+    ):
         self.prog = prog
         self.usage = usage
         self.description = description
@@ -48,7 +47,8 @@ class CLI(object):
 
         if version is not None:
             self.add_generic_option(
-                '-V', '--version', action='version', version=version)
+                '-V', '--version', action='version', version=version
+            )
 
     def add_generic_options(self, generic_options):
         """
@@ -64,6 +64,7 @@ class CLI(object):
     def add_generic_option(self, *args, **kwargs):
         def generic_options(parser):
             parser.add_argument(*args, **kwargs)
+
         self.add_generic_options(generic_options)
 
     def add_command(self, factory, main, name=None):
@@ -79,9 +80,8 @@ class CLI(object):
             long_desc = short_desc + '\n\n' + long_desc
 
         # determine the absolute import string if relative
-        if (
-            isinstance(main, str)
-            and (main.startswith('.') or main.startswith(':'))
+        if isinstance(main, str) and (
+            main.startswith('.') or main.startswith(':')
         ):
             module = __import__(factory.__module__, None, None, ['__doc__'])
             package = package_for_module(module)
@@ -90,13 +90,15 @@ class CLI(object):
             else:
                 main = package.__name__ + main
 
-        self.commands.append(CommandMeta(
-            factory=factory,
-            main=main,
-            name=name,
-            help=short_desc,
-            description=long_desc,
-        ))
+        self.commands.append(
+            CommandMeta(
+                factory=factory,
+                main=main,
+                name=name,
+                help=short_desc,
+                description=long_desc,
+            )
+        )
 
     def command(self, *args, **kwargs):
         """
@@ -108,9 +110,11 @@ class CLI(object):
         command.
 
         """
+
         def wrapper(func):
             self.add_command(func, *args, **kwargs)
             return func
+
         return wrapper
 
     def load_commands(self, obj):
@@ -209,11 +213,13 @@ class CLI(object):
 def make_generator(fn):
     if inspect.isgeneratorfunction(fn):
         return fn
+
     def wrapper(*a, **kw):
         ctx = None
         if fn is not None:
             ctx = fn(*a, **kw)
         yield ctx
+
     return wrapper
 
 
@@ -243,6 +249,7 @@ def trim(docstring):
     # Return a single string:
     return '\n'.join(trimmed)
 
+
 def parse_docstring(docstring):
     """
     Parse a PEP-257 docstring.
@@ -260,6 +267,7 @@ def parse_docstring(docstring):
             long_desc = lines[1].strip()
     return short_desc, long_desc
 
+
 def try_argcomplete(parser):  # pragma: no cover
     try:
         import argcomplete
@@ -268,9 +276,11 @@ def try_argcomplete(parser):  # pragma: no cover
     else:
         argcomplete.autocomplete(parser)
 
+
 def add_generic_options(parser, fns):
     for func in fns:
         func(parser)
+
 
 def add_commands(parser, commands, namespace_key):
     subparsers = parser.add_subparsers(title='commands', metavar='<command>')
@@ -284,6 +294,7 @@ def add_commands(parser, commands, namespace_key):
         meta.factory(subparser)
         subparser.set_defaults(**{namespace_key: meta})
 
+
 # stolen from pyramid.path
 def caller_module(level=2):
     module_globals = sys._getframe(level).f_globals
@@ -291,15 +302,17 @@ def caller_module(level=2):
     module = sys.modules[module_name]
     return module
 
+
 # stolen from pyramid.path
 def package_for_module(module):
     f = getattr(module, '__file__', '')
-    if (('__init__.py' in f) or ('__init__$py' in f)):  # empty at >>>
+    if ('__init__.py' in f) or ('__init__$py' in f):  # empty at >>>
         # Module is a package
         return module
     # Go up one level to get package
     package_name = module.__name__.rsplit('.', 1)[0]
     return sys.modules[package_name]
+
 
 # stolen from pyramid.path
 def caller_package(level=2):

@@ -1,46 +1,21 @@
-import os
-import sys
-
 from setuptools import setup, find_packages
-from setuptools.command.test import test as TestCommand
 
-py_version = sys.version_info[:2]
-PY3 = py_version[0] == 3
 
-here = os.path.abspath(os.path.dirname(__file__))
+def readfile(name):
+    with open(name) as f:
+        return f.read()
 
-def _read(path):
-    with open(path, 'r') as fp:
-        return fp.read()
 
-try:
-    README = _read(os.path.join(here, 'README.rst'))
-    CHANGES = _read(os.path.join(here, 'CHANGES.rst'))
-except:
-    README = CHANGES = ''
+readme = readfile('README.rst')
+changes = readfile('CHANGES.rst')
 
-install_requires = [
-]
-
-tests_require = install_requires + [
-    'pytest',
-]
-
-class PyTest(TestCommand):
-    def finalize_options(self):
-        TestCommand.finalize_options(self)
-        self.test_args = ['--pyargs', self.test_suite]
-    def run_tests(self):
-        #  import here, cause outside the eggs aren't loaded
-        import pytest
-        result = pytest.main(self.test_args)
-        sys.exit(result)
+tests_require = ['pytest', 'pytest-cov']
 
 setup(
     name='subparse',
     version='0.5.1',
     description='A command line helper library for extensible subcommands',
-    long_description=README + '\n\n' + CHANGES,
+    long_description=readme + '\n\n' + changes,
     url='https://github.com/mmerickel/subparse',
     classifiers=[
         'Development Status :: 4 - Beta',
@@ -58,15 +33,14 @@ setup(
         'Programming Language :: Python :: 3.6',
         'Programming Language :: Python :: 3.7',
     ],
-    keywords='argparse cli commandline subcommand',
+    keywords=['argparse', 'cli', 'commandline', 'subcommand'],
     author='Michael Merickel',
     author_email='oss@m.merickel.org',
     license='MIT',
-    packages=find_packages(),
+    packages=find_packages('src', exclude=['tests']),
+    package_dir={'': 'src'},
     include_package_data=True,
-    zip_safe=True,
-    install_requires=install_requires,
-    tests_require=tests_require,
-    test_suite='subparse.tests',
-    cmdclass={'test': PyTest},
+    zip_safe=False,
+    python_requires='>=2.7,!=3.0.*,!=3.1.*,!=3.2.*,!=3.3.*',
+    extras_require={'testing': tests_require},
 )

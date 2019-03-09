@@ -37,6 +37,7 @@ order of registrations is preserved.
 """
 from types import FunctionType
 
+
 class lazydecorator:
     def __init__(self):
         self.attrname = "_" + hex(id(self))
@@ -52,18 +53,23 @@ class lazydecorator:
                 self.num += 1
             siglist.append((args, kwargs))
             return func
+
         return decorate
 
     def discover(self, obj):
         decitems = []
         if isinstance(obj, dict):
+
             def iter():
                 for name in obj:
                     yield name, obj[name]
+
         else:
+
             def iter():
                 for name in dir(obj):
                     yield name, getattr(obj, name)
+
         for name, func in iter():
             func_orig = func
             if not isinstance(func, FunctionType):

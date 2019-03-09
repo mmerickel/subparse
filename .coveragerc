@@ -1,0 +1,14 @@
+[run]
+parallel = true
+source =
+    subparse
+    tests
+
+[paths]
+source =
+    src/subparse
+    */site-packages/subparse
+
+[report]
+show_missing = true
+precision = 2

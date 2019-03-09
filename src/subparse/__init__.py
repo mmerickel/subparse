@@ -10,7 +10,8 @@ from .lazydecorator import lazydecorator
 command = lazydecorator()
 
 CommandMeta = namedtuple(
-    'CommandMeta', ['factory', 'main', 'name', 'help', 'description']
+    'CommandMeta',
+    ['factory', 'main', 'name', 'help', 'description', 'context_kwargs'],
 )
 
 
@@ -67,13 +68,16 @@ class CLI(object):
 
         self.add_generic_options(generic_options)
 
-    def add_command(self, factory, main, name=None):
+    def add_command(self, factory, main, name=None, context_kwargs=None):
         """
         Attach a command directly to the :class:`CLI` object.
 
         """
         if name is None:
             name = factory.__name__.replace('_', '-')
+
+        if context_kwargs is None:
+            context_kwargs = {}
 
         short_desc, long_desc = parse_docstring(factory.__doc__)
         if long_desc:
@@ -96,6 +100,7 @@ class CLI(object):
             name=name,
             help=short_desc,
             description=long_desc,
+            context_kwargs=context_kwargs,
         )
 
     def command(self, *args, **kwargs):
@@ -164,9 +169,9 @@ class CLI(object):
         if argv is None:  # pragma: no cover
             argv = sys.argv[1:]
         argv = [str(v) for v in argv]
-        args = parse_args(self, argv)
+        meta, args = parse_args(self, argv)
         context_factory = contextmanager(make_generator(self.context_factory))
-        with context_factory(self, args) as context:
+        with context_factory(self, args, **meta.context_kwargs) as context:
             return dispatch(self, args, context=context)
 
 
@@ -187,12 +192,12 @@ def parse_args(cli, argv):
                 argv.append('--help')
 
         args = parser.parse_args(argv)
-        if not hasattr(args, cli._namespace_key):
-            return parser.parse_args(['-h'])
-        return args
+        meta = getattr(args, cli._namespace_key, None)
+        if meta is None:
+            parser.print_help()
+            parser.exit(2)
+        return meta, args
     except parser.ArgumentError as e:
-        if not argv:
-            return parser.parse_args(['-h'])
         parser.print_help()
         parser.exit(2, '{0}: error: {1}\n'.format(parser.prog, e.args[0]))
 

@@ -172,7 +172,7 @@ class CLI(object):
         meta, args = parse_args(self, argv)
         context_factory = contextmanager(make_generator(self.context_factory))
         with context_factory(self, args, **meta.context_kwargs) as context:
-            return dispatch(self, args, context=context)
+            return dispatch(meta, args, context=context)
 
 
 def parse_args(cli, argv):
@@ -194,16 +194,15 @@ def parse_args(cli, argv):
         args = parser.parse_args(argv)
         meta = getattr(args, cli._namespace_key, None)
         if meta is None:
-            parser.print_help()
+            parser.print_help(file=sys.stderr)
             parser.exit(2)
         return meta, args
     except parser.ArgumentError as e:
-        parser.print_help()
+        parser.print_help(file=sys.stderr)
         parser.exit(2, '{0}: error: {1}\n'.format(parser.prog, e.args[0]))
 
 
-def dispatch(cli, args, context=None):
-    meta = getattr(args, cli._namespace_key)
+def dispatch(meta, args, context=None):
     main = meta.main
     if isinstance(main, str):
         mod = main

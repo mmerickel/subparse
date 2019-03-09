@@ -1,3 +1,8 @@
+unreleased
+==========
+
+- Output usage/help to stderr when parsing fails.
+
 0.5.2 (2019-03-09)
 ==================
 

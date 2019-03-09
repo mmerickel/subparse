@@ -42,7 +42,7 @@ class CLI(object):
         self.version = version
         self.add_help_command = add_help_command
         self.generic_options = []
-        self.commands = []
+        self.commands = {}
         self.context_factory = context_factory
 
         if version is not None:
@@ -90,14 +90,12 @@ class CLI(object):
             else:
                 main = package.__name__ + main
 
-        self.commands.append(
-            CommandMeta(
-                factory=factory,
-                main=main,
-                name=name,
-                help=short_desc,
-                description=long_desc,
-            )
+        self.commands[name] = CommandMeta(
+            factory=factory,
+            main=main,
+            name=name,
+            help=short_desc,
+            description=long_desc,
         )
 
     def command(self, *args, **kwargs):
@@ -284,7 +282,7 @@ def add_generic_options(parser, fns):
 
 def add_commands(parser, commands, namespace_key):
     subparsers = parser.add_subparsers(title='commands', metavar='<command>')
-    for meta in commands:
+    for meta in sorted(commands.values(), key=lambda m: m.name):
         subparser = subparsers.add_parser(
             meta.name,
             help=meta.help,

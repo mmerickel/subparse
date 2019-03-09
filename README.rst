@@ -15,15 +15,15 @@ Basic Usage
     from subparse import CLI
 
     class MyApp(object):
-        def __init__(self, args):
-            self.args = args
+        def __init__(self, quiet=False):
+            self.quiet = quiet
 
         def info(self, *msg):
-            if not self.args.quiet:
+            if not self.quiet:
                 print('[info]', *msg)
 
     def context_factory(cli, args):
-        return MyApp(args)
+        return MyApp(args.quiet)
 
     def generic_options(parser):
         parser.add_argument('--quiet', action='store_true',
@@ -130,6 +130,10 @@ become available.
 Context Factory
 ===============
 
+Each subcommand, when executed, is passed a context object which defines a
+reusable API between subcommands. This is really the secret sauce of
+``subparse`` that makes it really easy to build your own shared CLI features.
+
 The ``context_factory`` argument to the ``subparse.CLI`` allows for defining
 an object that is passed to all commands. This factory can also be a
 generator, allowing it to ``yield`` the context object and then cleanup
@@ -142,7 +146,25 @@ after the command is complete. For example:
     def context_factory(cli, args):
         tm = transaction.TransactionManager(explicit=True)
         with tm:
-          yield tm
+            yield tm
 
 In the above example the transaction manager is available to all subcommands
 and it can commit/abort based on whether the command raises an exception.
+
+Each subcommand can pass custom kwargs to the context factory via the
+``context_kwargs`` argument. For example, if a single subcommand wishes to
+opt-out of the transaction manager:
+
+::
+
+    def context_factory(cli, args, without_tm=False):
+        if without_tm:
+            yield
+
+        tm = transaction.TransactionManager(explicit=True)
+        with tm:
+            yield tm
+
+    @command(..., context_kwargs=dict(without_tm=True))
+    def foo(parser):
+        """" Run a command without the tm enabled."""

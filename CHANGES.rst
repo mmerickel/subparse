@@ -3,6 +3,10 @@ unreleased
 
 - Output usage/help to stderr when parsing fails.
 
+- Support passing ``context_kwargs`` to the ``command`` decorator. These
+  arguments will be passed to the ``context_factory`` when the command is
+  executed.
+
 0.5.2 (2019-03-09)
 ==================
 

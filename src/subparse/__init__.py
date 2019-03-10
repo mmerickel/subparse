@@ -15,14 +15,10 @@ CommandMeta = namedtuple(
 )
 
 
-class ArgumentParserError(Exception):
-    """An error from the argparse subsystem."""
-
-
 class ArgumentParser(argparse.ArgumentParser):
     def error(self, message):
         """Raise errors instead of printing and raising SystemExit."""
-        raise ArgumentParserError(message)
+        raise argparse.ArgumentError(None, message)
 
 
 class CLI(object):
@@ -194,12 +190,15 @@ def parse_args(cli, argv):
                 argv.append('--help')
 
         args = parser.parse_args(argv)
-        meta = getattr(args, cli._namespace_key)
+        meta = getattr(args, cli._namespace_key, None)
+        if not meta:
+            parser.print_help(file=sys.stderr)
+            parser.exit(2)
         return meta, args
 
-    except ArgumentParserError as e:
+    except argparse.ArgumentError as e:
         parser.print_help(file=sys.stderr)
-        parser.exit(2, '{0}: error: {1}\n'.format(parser.prog, e.args[0]))
+        parser.exit(2, '{0}: error: {1}\n'.format(parser.prog, str(e)))
 
 
 def load_main(meta):
@@ -287,9 +286,7 @@ def add_generic_options(parser, fns):
 
 
 def add_commands(parser, commands, namespace_key):
-    subparsers = parser.add_subparsers(
-        title='commands', metavar='<command>', required=True
-    )
+    subparsers = parser.add_subparsers(title='commands', metavar='<command>')
     for meta in sorted(commands.values(), key=lambda m: m.name):
         subparser = subparsers.add_parser(
             meta.name,

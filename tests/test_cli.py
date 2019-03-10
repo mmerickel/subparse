@@ -189,7 +189,7 @@ def test_bad_options(capsys):
 
     pytest.raises(SystemExit, cli.run, ['foo', '--missing'])
     out, err = capsys.readouterr()
-    assert 'usage:' in out
+    assert 'usage:' in err
 
 
 def test_version_default(capsys):
@@ -197,7 +197,7 @@ def test_version_default(capsys):
 
     pytest.raises(SystemExit, cli.run, ['--version'])
     out, err = capsys.readouterr()
-    assert err + out == 'foo\n'
+    assert err == 'foo\n'
 
 
 def test_docstring(capsys):

@@ -13,7 +13,7 @@ tests_require = ['pytest', 'pytest-cov']
 
 setup(
     name='subparse',
-    version='0.5.2',
+    version='0.5.3',
     description='A command line helper library for extensible subcommands',
     long_description=readme + '\n\n' + changes,
     url='https://github.com/mmerickel/subparse',

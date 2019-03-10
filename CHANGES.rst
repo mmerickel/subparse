@@ -1,5 +1,5 @@
-unreleased
-==========
+0.5.3 (2019-03-09)
+==================
 
 - Output help to ``sys.stderr`` when parsing fails.
 

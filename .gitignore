@@ -9,4 +9,5 @@ dist/
 docs/_build/
 env
 coverage.xml
-!tests/fake_packages/*
+!tests/fake_packages/*.egg
+!tests/fake_packages/*/*.egg-info

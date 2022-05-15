@@ -70,7 +70,7 @@ class lazydecorator:
                 for name in dir(obj):
                     yield name, getattr(obj, name)
 
-        for name, func in iter():
+        for _, func in iter():
             func_orig = func
             if not isinstance(func, FunctionType):
                 try:
@@ -84,7 +84,7 @@ class lazydecorator:
             decitems.append((num, func_orig, siglist))
         decitems.sort()
         result = []
-        for num, func_orig, siglist in decitems:
+        for _, func_orig, siglist in decitems:
             for args, kwargs in siglist:
                 result.append((func_orig, args, kwargs))
         return result

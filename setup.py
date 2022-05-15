@@ -1,4 +1,4 @@
-from setuptools import setup, find_packages
+from setuptools import find_packages, setup
 
 
 def readfile(name):
@@ -16,6 +16,7 @@ setup(
     version='0.5.3',
     description='A command line helper library for extensible subcommands',
     long_description=readme + '\n\n' + changes,
+    long_description_content_type='text/x-rst',
     url='https://github.com/mmerickel/subparse',
     classifiers=[
         'Development Status :: 4 - Beta',

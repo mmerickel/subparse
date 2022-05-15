@@ -21,7 +21,7 @@ class ArgumentParser(argparse.ArgumentParser):
         raise argparse.ArgumentError(None, message)
 
 
-class CLI(object):
+class CLI:
     _ArgumentParser = ArgumentParser
     _namespace_key = '_subparse_meta'
 
@@ -81,9 +81,7 @@ class CLI(object):
             long_desc = short_desc + '\n\n' + long_desc
 
         # determine the absolute import string if relative
-        if isinstance(main, str) and (
-            main.startswith('.') or main.startswith(':')
-        ):
+        if isinstance(main, str) and (main.startswith('.') or main.startswith(':')):
             module = __import__(factory.__module__, None, None, ['__doc__'])
             package = package_for_module(module)
             if main in ['.', ':']:
@@ -198,7 +196,7 @@ def parse_args(cli, argv):
 
     except argparse.ArgumentError as e:
         parser.print_help(file=sys.stderr)
-        parser.exit(2, '{0}: error: {1}\n'.format(parser.prog, str(e)))
+        parser.exit(2, f'{parser.prog}: error: {str(e)}\n')
 
 
 def load_main(meta):
@@ -227,7 +225,7 @@ def make_generator(fn):
 
 
 def trim(docstring):
-    """ Trim function from PEP-257."""
+    """Trim function from PEP-257."""
     if not docstring:
         return ''
     # Convert tabs to spaces (following the normal Python rules)

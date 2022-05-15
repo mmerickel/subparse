@@ -1,8 +1,9 @@
 import argparse
 from collections import namedtuple
 from contextlib import contextmanager
+from importlib import import_module
+import importlib.metadata
 import inspect
-import pkg_resources
 import sys
 
 from .lazydecorator import lazydecorator
@@ -128,25 +129,21 @@ class CLI:
 
         """
         if isinstance(obj, str):
-            if obj.startswith('.') or obj.startswith(':'):
-                package = caller_package()
-                if obj in ['.', ':']:
-                    obj = package.__name__
-                else:
-                    obj = package.__name__ + obj
-            obj = pkg_resources.EntryPoint.parse('x=%s' % obj).resolve()
+            obj = obj.replace(':', '.')
+            package = caller_package().__name__ if obj.startswith('.') else None
+            obj = import_module(obj, package)
         command.discover_and_call(obj, self.command)
 
     def load_commands_from_entry_point(self, specifier):
         """
-        Load commands defined within a pkg_resources entry point.
+        Load commands defined within a distribution entry point.
 
         Each entry will be a module that should be searched for functions
         decorated with the :func:`subparse.command` decorator. This
         operation is not recursive.
 
         """
-        for ep in pkg_resources.iter_entry_points(specifier):
+        for ep in importlib.metadata.entry_points()[specifier]:
             module = ep.load()
             command.discover_and_call(module, self.command)
 

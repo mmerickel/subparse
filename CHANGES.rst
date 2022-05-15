@@ -1,11 +1,13 @@
-unreleased
-==========
+0.6 (2022-05-15)
+================
 
 - Drop Python 2.7, 3.4, 3.5, 3.6, 3.7.
 
 - Add Python 3.8, 3.9, 3.10.
 
-- Drop dependency on pkg_resources.
+- Drop dependency on pkg_resources and use importlib.metadata.
+
+- 100% test coverage.
 
 0.5.3 (2019-03-09)
 ==================

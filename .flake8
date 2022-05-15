@@ -10,3 +10,7 @@ ignore =
     # W504: line break after binary operator (flake8 is not PEP8 compliant)
     W504
 show-source = True
+exclude =
+    .git,
+    __pycache__,
+    tests/fake_packages,

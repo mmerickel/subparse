@@ -9,3 +9,4 @@ dist/
 docs/_build/
 env
 coverage.xml
+!tests/fake_packages/*

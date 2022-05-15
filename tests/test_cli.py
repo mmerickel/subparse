@@ -18,6 +18,11 @@ def test_basic():
 
     @cli.command('.fixtures.foo')
     def foo(parser):
+        """
+        Short name
+
+        This is my long description.
+        """
         parser.add_argument('--bar', action='store_true')
 
     result = cli.run(['foo', '--bar'])
@@ -168,6 +173,18 @@ def test_alternate_main():
     assert result == 0
 
 
+def test_blank_command(capsys):
+    cli = make_cli()
+
+    @cli.command('.fixtures.foo')
+    def foo(parser):
+        parser.add_argument('--bar', action='store_true')
+
+    pytest.raises(SystemExit, cli.run, [])
+    out, err = capsys.readouterr()
+    assert 'usage:' in err
+
+
 def test_help_command(capsys):
     cli = make_cli()
 
@@ -224,3 +241,15 @@ def test_docstring(capsys):
     )
     assert short == 'hello world this is part of short'
     assert long == 'this is part of long'
+
+
+def test_load_entry_point():
+    app = {}
+    cli = make_cli(context=app)
+    cli.load_commands_from_entry_point('cli.commands')
+
+    result = cli.run(['foo'])
+    assert app['fn'].__module__ == 'fakeapp.foo'
+    assert app['fn'].__name__ == 'main'
+    assert app['args'].bar is False
+    assert result == 0

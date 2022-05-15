@@ -223,7 +223,7 @@ def make_generator(fn):
 
 def trim(docstring):
     """Trim function from PEP-257."""
-    if not docstring:
+    if not docstring:  # pragma: no cover
         return ''
     # Convert tabs to spaces (following the normal Python rules)
     # and split into a list of lines:
@@ -257,7 +257,7 @@ def parse_docstring(docstring):
     """
     short_desc = long_desc = ''
     if docstring:
-        docstring = trim(docstring.lstrip('\n'))
+        docstring = trim(docstring)
         lines = docstring.split('\n\n', 1)
         short_desc = lines[0].strip().replace('\n', ' ')
 
@@ -302,7 +302,7 @@ def caller_module(level=2):
 
 
 # stolen from pyramid.path
-def package_for_module(module):
+def package_for_module(module):  # pragma: no cover
     f = getattr(module, '__file__', '')
     if ('__init__.py' in f) or ('__init__$py' in f):  # empty at >>>
         # Module is a package

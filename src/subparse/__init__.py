@@ -143,7 +143,15 @@ class CLI:
         operation is not recursive.
 
         """
-        for ep in importlib.metadata.entry_points()[specifier]:
+        eps = importlib.metadata.entry_points()
+
+        # getitem is deprecated in 3.10, so test for select and fallback
+        # gracefully for 3.8/3.9
+        entries = (
+            eps.select(group=specifier) if hasattr(eps, 'select') else eps[specifier]
+        )
+
+        for ep in entries:
             module = ep.load()
             command.discover_and_call(module, self.command)
 
